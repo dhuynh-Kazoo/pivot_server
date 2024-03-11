@@ -4,13 +4,16 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 ?>
 
 <Response>
-    <Say>Hello This is a call will recording you</Say>
+    <Say>Hello, we will record your conversation</Say>
     <Record
-        timeout="10"
-        recordingUrl="http://localhost:5000/upload"
-        finishOnKey="#"
-        action="https://dhuynh147.000webhostapp.com/twiml/record_thanks.php"
+        timeout="5"
+        recordingUrl="http://192.168.1.16:5000/pivot/record/upload"
+        finishOnKey="1"
+        action="http://192.168.1.16:5000/pivot/twiml/record_thanks.php"
         method="GET"
+        playBeep="true"
+	    maxLength="60"
+        trim="trim-silence"
+        transcribe="true"
     />
-
 </Response>

@@ -11,12 +11,28 @@ def hello_world():
 # http://localhost:5000/pivot/record/upload/call_recording_HiFzH3wlY9NwcWAw-J_W6Q...mp3
 @app.route("/pivot/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
 def record_upload(recorded_file):
+    print("=========================================")
+    print("Request queries: ", request.args.to_dict())
+    print("Request Content-Type: ", request.content_type)
+    print("Request body: ", request.files)
+    print("=========================================")
+
     data = request.get_data()
     fname = os.path.join("./recorded_calls/" + recorded_file)
-    print("Request queries: ", request.args.to_dict())
     with open(fname, "wb") as file:
         file.write(data)
     return '', 200
+
+@app.route("/pivot/gather", methods = ["POST", "GET"])
+def collect_dtmf():
+    print("=========================================")
+    print("Request queries: ", request.args.to_dict())
+    json_data = request.form or request.get_json()
+    data = dict(json_data)
+    print("Request body: ", data)
+    print("=========================================")
+    return '', 200    
+
 
 @app.route("/pivot/twiml/<string:action_file>")
 def pivot(action_file):

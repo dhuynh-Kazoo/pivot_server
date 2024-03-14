@@ -14,8 +14,8 @@ def hello_world():
 def record_upload(recorded_file):
     logging_request(request)
 
-    data = request.get_data()
-    fname = os.path.join("./recorded_calls/" + recorded_file)
+    data = read_req_body(request)
+    fname = os.path.join("./record/calls/" + recorded_file)
     with open(fname, "wb") as file:
         file.write(data)
     return '', 200
@@ -26,16 +26,29 @@ def collect_dtmf():
     return '', 200    
 
 
-@app.route("/pivot/twiml/<string:action_file>", methods=["POST", "GET"])
-@app.route("/pivot/twiml/<string:action_file>/<string:recorded_file>", methods=["PUT"])
-def pivot(action_file, recorded_file=None):
+# for simple action like Say, Play, Hangup
+@app.route("/pivot/twiml/<string:action>", methods=["POST", "GET"])
+@app.route("/pivot/twiml/<string:action>/<string:filename>", methods=["PUT", "GET"])
+@app.route("/pivot/twiml/<string:action>/<string:filename>/<string:recorded_file>", methods=["PUT", "GET"])
+def pivot(action, filename=None, recorded_file=None):
     logging_request(request)
-    if request.method == "PUT": # no `action` and no `recordingUrl` attributes for `record` action
+    # no `action` and no `recordingUrl` attributes for `record` action
+    if request.method == "PUT" and action == "record": 
+        data = read_req_body(request)
+        fname = "./twiml/" + action + "/calls/" + recorded_file
+        with open(fname, "wb") as file:
+            file.write(data)
         return '', 200
-    if request.method == "POST": # no `action` attribute
+    
+    elif request.method == "POST": # no `action` attribute
         return '', 200
+    
     else: # GET method
-        file_path = os.path.join(os.getcwd() + "/twiml/", action_file)
+        if action and filename:
+            file_path = os.path.join(os.getcwd() + "/twiml/" + action, filename)
+        else:
+            file_path = os.path.join(os.getcwd() + "/twiml/", action)
+
         if os.path.exists(file_path):
             out = sp.run(["php", file_path], stdout=sp.PIPE)
             response = make_response(out.stdout)
@@ -44,15 +57,19 @@ def pivot(action_file, recorded_file=None):
         else:
             return "FILE NOT FOUND", 404
 
-
-def logging_request(request):
-    now = datetime.datetime.now()
-    url = request.base_url
+def read_req_body(request):
     json_data = request.form or request.get_json()
     if json_data:
         data = dict(json_data)
     else:
         data = request.get_data()
+    return data    
+    
+def logging_request(request):
+    now = datetime.datetime.now()
+    url = request.base_url
+    json_data = request.form or request.get_json()
+    data = read_req_body(request)
     
     print("\n\n")
     print("====================================")

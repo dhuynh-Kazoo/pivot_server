@@ -10,12 +10,12 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 # http://localhost:5000/pivot/record/upload/call_recording_HiFzH3wlY9NwcWAw-J_W6Q...mp3
-@app.route("/pivot/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
+@app.route("/pivot/twiml/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
 def record_upload(recorded_file):
     logging_request(request)
 
     data = read_req_body(request)
-    fname = os.path.join("./record/calls/" + recorded_file)
+    fname = os.path.join("./twiml/record/calls/" + recorded_file)
     with open(fname, "wb") as file:
         file.write(data)
     return '', 200
@@ -28,7 +28,9 @@ def collect_dtmf():
 
 # for simple action like Say, Play, Hangup
 @app.route("/pivot/twiml/<string:action>", methods=["POST", "GET"])
+# for complex action like Dial, Record, Gather
 @app.route("/pivot/twiml/<string:action>/<string:filename>", methods=["PUT", "GET"])
+# for `record` action with uploaded file
 @app.route("/pivot/twiml/<string:action>/<string:filename>/<string:recorded_file>", methods=["PUT", "GET"])
 def pivot(action, filename=None, recorded_file=None):
     logging_request(request)

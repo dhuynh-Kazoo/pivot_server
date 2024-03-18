@@ -9,6 +9,13 @@ app = Flask(__name__)
 def hello_world():
     return "<p>Hello, World!</p>"
 
+# recordin POST with action attribute
+@app.route("/pivot/twiml/record", methods=["GET", "POST"])
+def record_for_action():
+    logging_request(request)
+
+    return '', 200
+
 # http://localhost:5000/pivot/record/upload/call_recording_HiFzH3wlY9NwcWAw-J_W6Q...mp3
 @app.route("/pivot/twiml/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
 def record_upload(recorded_file):
@@ -18,6 +25,12 @@ def record_upload(recorded_file):
     fname = os.path.join("./twiml/record/calls/" + recorded_file)
     with open(fname, "wb") as file:
         file.write(data)
+    return '', 200
+
+# http://192.168.1.16:5000/pivot/twiml/dial/conference/wait
+@app.route("/pivot/twiml/dial/conference/wait", methods=["GET", "POST"])
+def wait_conference():
+    logging_request(request)
     return '', 200
 
 @app.route("/pivot/gather", methods = ["POST", "GET"])

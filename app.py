@@ -10,19 +10,20 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 # recordin POST with action attribute
-@app.route("/pivot/twiml/record", methods=["GET", "POST"])
-def record_for_action():
+# @app.route("/pivot/twiml/record", methods=["GET", "POST"])
+# def record_for_action():
+#     logging_request(request)
+
+#     return '', 200
+
+# http://192.168.1.16:5000/pivot/kazoo/record/upload/call_recording_98QjCmrcLae1ho1UvakHTg...mp3
+@app.route("/pivot/<string:format>/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
+def record_upload(format, recorded_file):
     logging_request(request)
-
-    return '', 200
-
-# http://localhost:5000/pivot/record/upload/call_recording_HiFzH3wlY9NwcWAw-J_W6Q...mp3
-@app.route("/pivot/twiml/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
-def record_upload(recorded_file):
-    logging_request(request)
-
+    record_path = "./" + format + "/record/calls/"
     data = read_req_body(request)
-    fname = os.path.join("./twiml/record/calls/" + recorded_file)
+    fname = os.path.join(record_path + recorded_file)
+    fname = fname.replace('...', '.')
     with open(fname, "wb") as file:
         file.write(data)
     return '', 200
@@ -38,6 +39,17 @@ def collect_dtmf():
     logging_request(request)
     return '', 200    
 
+@app.route("/pivot/kazoo/<string:filename>", methods=["GET", "POST"])
+def kazoo_pivot(filename=None):
+    file_path = os.path.join(os.getcwd() + "/kazoo/", filename)
+    if os.path.exists(file_path):
+        out = sp.run(["php", file_path], stdout=sp.PIPE)
+        response = make_response(out.stdout)
+        response.headers["Content-Type"] = "application/json;charset=UTF-8"
+        return response
+    else:
+        return "FILE NOT FOUND", 404
+   
 
 # for simple action like Say, Play, Hangup
 @app.route("/pivot/twiml/<string:action>", methods=["POST", "GET"])
@@ -60,6 +72,7 @@ def pivot(action, filename=None, recorded_file=None):
     
     else: # GET method
         if action and filename:
+            print(action, filename)
             file_path = os.path.join(os.getcwd() + "/twiml/" + action, filename)
         else:
             file_path = os.path.join(os.getcwd() + "/twiml/", action)

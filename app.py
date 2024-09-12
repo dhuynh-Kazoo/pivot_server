@@ -9,6 +9,11 @@ app = Flask(__name__)
 def hello_world():
     return "<p>Hello, World!</p>"
 
+@app.route("/call/cdr", methods=["GET", "POST"])
+def call_cdr():
+    logging_request(request)
+    return '', 200
+
 # recordin POST with action attribute
 # @app.route("/pivot/twiml/record", methods=["GET", "POST"])
 # def record_for_action():
@@ -16,11 +21,12 @@ def hello_world():
 
 #     return '', 200
 
+# /pivot/twiml/record/upload/call_recording_b6i_QqcnsKFNhxgifX9nbA...mp3
 # http://192.168.1.16:5000/pivot/kazoo/record/upload/call_recording_98QjCmrcLae1ho1UvakHTg...mp3
 @app.route("/pivot/<string:format>/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
 def record_upload(format, recorded_file):
     logging_request(request)
-    record_path = "./" + format + "/record/calls/"
+    record_path = "./" + format + "/record/upload/"
     data = read_req_body(request)
     fname = os.path.join(record_path + recorded_file)
     fname = fname.replace('...', '.')

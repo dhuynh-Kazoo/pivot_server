@@ -1,4 +1,4 @@
-from flask import Flask, make_response, send_file, render_template, request
+from flask import Flask, make_response, request, Response
 import sys
 import os
 import subprocess as sp
@@ -31,6 +31,24 @@ def wait_conference():
 def collect_dtmf():
     logging_request(request)
     return '', 200    
+
+@app.route("/pivot/gatherHandler", methods = ["POST", "GET"])
+def dtmf_handler():
+    logging_request(request)
+    data = read_req_body(request)
+    forwardExtension = data['Digits']
+    print('forwardExtension: ', forwardExtension)
+
+    xml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+                    <Response>
+                    <Say> You are routed to the new extension </Say>
+                    <Dial>
+                        <Sip>{forwardExtension}@2600hz.com</Sip>
+                    </Dial>
+                    </Response>'''
+    return Response(xml_content, mimetype='application/xml')
+
+
 
 @app.route("/pivot/kazoo/<string:filename>", methods=["GET", "POST"])
 def kazoo_pivot(filename=None):

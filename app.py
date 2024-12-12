@@ -1,7 +1,14 @@
 from flask import Flask, make_response, send_file, render_template, request
+import sys
 import os
 import subprocess as sp
 import datetime
+
+## check upload directory if not exists then crash
+UPLOAD_DIR = "./twiml/record/upload"
+if not os.path.exists(UPLOAD_DIR):
+    print("You can not have three process at the same time.")
+    sys.exit('Create the upload dir first:' + UPLOAD_DIR)
 
 app = Flask(__name__)
 
@@ -12,26 +19,6 @@ def hello_world():
 @app.route("/call/cdr", methods=["GET", "POST"])
 def call_cdr():
     logging_request(request)
-    return '', 200
-
-# recordin POST with action attribute
-# @app.route("/pivot/twiml/record", methods=["GET", "POST"])
-# def record_for_action():
-#     logging_request(request)
-
-#     return '', 200
-
-# /pivot/twiml/record/upload/call_recording_b6i_QqcnsKFNhxgifX9nbA...mp3
-# http://192.168.1.16:5000/pivot/kazoo/record/upload/call_recording_98QjCmrcLae1ho1UvakHTg...mp3
-@app.route("/pivot/<string:format>/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
-def record_upload(format, recorded_file):
-    logging_request(request)
-    record_path = "./" + format + "/record/upload/"
-    data = read_req_body(request)
-    fname = os.path.join(record_path + recorded_file)
-    fname = fname.replace('...', '.')
-    with open(fname, "wb") as file:
-        file.write(data)
     return '', 200
 
 # http://192.168.1.16:5000/pivot/twiml/dial/conference/wait
@@ -55,20 +42,31 @@ def kazoo_pivot(filename=None):
         return response
     else:
         return "FILE NOT FOUND", 404
-   
+    
+@app.route("/pivot/<string:format>/record/upload/<string:recorded_file>", methods = ['POST', 'PUT'])
+def record_upload(format, recorded_file):
+    logging_request(request)
+    record_path = "./" + format + "/record/upload/"
+    data = read_req_body(request)
+    fname = os.path.join(record_path + recorded_file)
+    fname = fname.replace('...', '.')
+    with open(fname, "wb") as file:
+        file.write(data)
+    return '', 200
 
 # for simple action like Say, Play, Hangup
 @app.route("/pivot/twiml/<string:action>", methods=["POST", "GET"])
 # for complex action like Dial, Record, Gather
 @app.route("/pivot/twiml/<string:action>/<string:filename>", methods=["PUT", "GET"])
 # for `record` action with uploaded file
-@app.route("/pivot/twiml/<string:action>/<string:filename>/<string:recorded_file>", methods=["PUT", "GET"])
+# /pivot/twiml/record/upload/call_recording_SaIQOD-sPTqUFK6yFOboZw...mp3 [PUT]
+@app.route("/pivot/twiml/<string:action>/upload/<string:recorded_file>", methods=["PUT", "GET"])
 def pivot(action, filename=None, recorded_file=None):
     logging_request(request)
     # no `action` and no `recordingUrl` attributes for `record` action
     if request.method == "PUT" and action == "record": 
         data = read_req_body(request)
-        fname = "./twiml/" + action + "/calls/" + recorded_file
+        fname = "./twiml/" + action + "/upload/" + recorded_file
         with open(fname, "wb") as file:
             file.write(data)
         return '', 200
